@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Checkbox } from "./ui/checkbox";
 
 const workoutData = [
   {
@@ -491,7 +493,6 @@ const workoutData = [
     ],
   },
 ];
-
 const colors = [
   "bg-pink-100 hover:bg-pink-200",
   "bg-purple-100 hover:bg-purple-200",
@@ -499,9 +500,19 @@ const colors = [
   "bg-green-100 hover:bg-green-200",
 ];
 
-export function WorkoutProgramComponent() {
+type User = "Zach" | "Jake";
+
+function WorkoutProgram({ user }: { user: User }) {
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
+  const [progress, setProgress] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const storedProgress = localStorage.getItem(`workoutProgress-${user}`);
+    if (storedProgress) {
+      setProgress(JSON.parse(storedProgress));
+    }
+  }, [user]);
 
   const toggleWeek = (week: number) => {
     setExpandedWeeks((prev) =>
@@ -517,11 +528,22 @@ export function WorkoutProgramComponent() {
     );
   };
 
+  const toggleExercise = (exerciseId: string) => {
+    setProgress((prev) => {
+      const newProgress = { ...prev, [exerciseId]: !prev[exerciseId] };
+      localStorage.setItem(
+        `workoutProgress-${user}`,
+        JSON.stringify(newProgress)
+      );
+      return newProgress;
+    });
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-4">
-      <h1 className="text-3xl font-bold text-center mb-6 text-primary">
-        8-Week Clean-Focused Program (3-4 Days per Week)
-      </h1>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-center mb-4 text-primary">
+        {user}&apos;s Workout Program
+      </h2>
       {workoutData.map((week) => (
         <Card
           key={week.week}
@@ -563,17 +585,29 @@ export function WorkoutProgramComponent() {
                         <TableRow>
                           <TableHead className="w-1/2">Exercise</TableHead>
                           <TableHead>Sets/Reps/Intensity</TableHead>
+                          <TableHead className="w-24">Completed</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {day.exercises.map((exercise, index) => (
-                          <TableRow key={index}>
-                            <TableCell className="font-medium">
-                              {exercise.name}
-                            </TableCell>
-                            <TableCell>{exercise.sets}</TableCell>
-                          </TableRow>
-                        ))}
+                        {day.exercises.map((exercise, exerciseIndex) => {
+                          const exerciseId = `${user}-${week.week}-${day.day}-${exerciseIndex}`;
+                          return (
+                            <TableRow key={exerciseIndex}>
+                              <TableCell className="font-medium">
+                                {exercise.name}
+                              </TableCell>
+                              <TableCell>{exercise.sets}</TableCell>
+                              <TableCell>
+                                <Checkbox
+                                  checked={progress[exerciseId] || false}
+                                  onCheckedChange={() =>
+                                    toggleExercise(exerciseId)
+                                  }
+                                />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
                       </TableBody>
                     </Table>
                   )}
@@ -583,6 +617,45 @@ export function WorkoutProgramComponent() {
           )}
         </Card>
       ))}
+    </div>
+  );
+}
+
+export default function WorkoutProgramTabs() {
+  const [activeTab, setActiveTab] = useState<User>("Zach");
+
+  useEffect(() => {
+    const storedTab = localStorage.getItem("activeWorkoutTab") as User | null;
+    if (storedTab) {
+      setActiveTab(storedTab);
+    }
+  }, []);
+
+  const handleTabChange = (tab: User) => {
+    setActiveTab(tab);
+    localStorage.setItem("activeWorkoutTab", tab);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-4 space-y-4">
+      <h1 className="text-3xl font-bold text-center mb-6 text-primary">
+        8-Week Clean-Focused Program
+      </h1>
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange as (value: string) => void}
+      >
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="Zach">Zach</TabsTrigger>
+          <TabsTrigger value="Jake">Jake</TabsTrigger>
+        </TabsList>
+        <TabsContent value="Zach">
+          <WorkoutProgram user="Zach" />
+        </TabsContent>
+        <TabsContent value="Jake">
+          <WorkoutProgram user="Jake" />
+        </TabsContent>
+      </Tabs>
       <Card className="mt-6 border-2 border-primary">
         <CardHeader className="bg-primary text-primary-foreground">
           <CardTitle>Notes</CardTitle>
