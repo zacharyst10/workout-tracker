@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { ChevronDown, ChevronUp, HelpCircle, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -1258,6 +1258,7 @@ function WorkoutProgram({ user }: { user: User }) {
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
   const [progress, setProgress] = useState<Record<string, boolean[]>>({});
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const storedProgress = localStorage.getItem(`workoutProgress-${user}`);
@@ -1383,11 +1384,29 @@ function WorkoutProgram({ user }: { user: User }) {
                                       </div>
                                       {exercise.isRM && (
                                         <TooltipProvider>
-                                          <Tooltip>
+                                          <Tooltip
+                                            open={isOpen}
+                                            onOpenChange={setIsOpen}
+                                          >
                                             <TooltipTrigger asChild>
-                                              <HelpCircle className="h-4 w-4 flex-shrink-0 text-muted-foreground cursor-help" />
+                                              <button
+                                                onClick={() => setIsOpen(true)}
+                                                className="focus:outline-none"
+                                              >
+                                                <HelpCircle className="h-4 w-4 flex-shrink-0 text-muted-foreground cursor-help" />
+                                              </button>
                                             </TooltipTrigger>
-                                            <TooltipContent className="max-w-sm">
+                                            <TooltipContent
+                                              side="top"
+                                              className="max-w-[280px] sm:max-w-sm p-4 relative"
+                                              sideOffset={5}
+                                            >
+                                              <button
+                                                onClick={() => setIsOpen(false)}
+                                                className="absolute top-2 right-2 focus:outline-none"
+                                              >
+                                                <X className="h-4 w-4" />
+                                              </button>
                                               <p className="font-bold mb-2">
                                                 RM (Rep Max)
                                               </p>
