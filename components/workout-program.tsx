@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 import { useState, useEffect } from "react";
 import {
@@ -53,22 +54,17 @@ type UserMaxes = {
 };
 
 type AllUserMaxes = {
-  [key in User]: UserMaxes;
+  Zach: UserMaxes;
+  Jake: UserMaxes;
 };
 
 const defaultUserMaxes: AllUserMaxes = {
-  Zach: {
-    clean: 315,
-    frontSquat: 365,
-    backSquat: 425,
-    press: 205,
-  },
-  Jake: {
-    clean: 285,
-    frontSquat: 335,
-    backSquat: 395,
-    press: 185,
-  },
+  Zach: { clean: 225, frontSquat: 225, backSquat: 315, press: 135 },
+  Jake: { clean: 185, frontSquat: 185, backSquat: 275, press: 115 },
+};
+
+type RMInput = {
+  [key: string]: number;
 };
 function MaxesDrawer({ activeUser }: { activeUser: User }) {
   const [userMaxes, setUserMaxes] = useState<AllUserMaxes>(defaultUserMaxes);
@@ -213,23 +209,27 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
   );
 }
 
-function WorkoutProgram({ user }: { user: User }) {
-  const dayColors = [
-    "bg-pink-100 hover:bg-pink-200",
-    "bg-purple-100 hover:bg-purple-200",
-    "bg-blue-100 hover:bg-blue-200",
-    "bg-green-100 hover:bg-green-200",
-    "bg-yellow-100 hover:bg-yellow-200",
-  ];
+function WorkoutProgram({
+  user,
+  userMaxes,
+}: {
+  user: User;
+  userMaxes: UserMaxes;
+}) {
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
   const [progress, setProgress] = useState<Record<string, boolean[]>>({});
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const [rmInputs, setRmInputs] = useState<RMInput>({});
 
   useEffect(() => {
     const storedProgress = localStorage.getItem(`workoutProgress-${user}`);
     if (storedProgress) {
       setProgress(JSON.parse(storedProgress));
+    }
+    const storedRmInputs = localStorage.getItem(`rmInputs-${user}`);
+    if (storedRmInputs) {
+      setRmInputs(JSON.parse(storedRmInputs));
     }
   }, [user]);
 
@@ -268,6 +268,47 @@ function WorkoutProgram({ user }: { user: User }) {
     return `hsl(${hue}, 70%, 85%)`; // Higher lightness (85%) for pastel colors
   };
 
+  const calculateWeight = (
+    exercise: string,
+    percentage: number,
+    rmInput?: number
+  ): number | null => {
+    if (exercise.toLowerCase().includes("rm") && !rmInput) {
+      return null;
+    }
+    if (rmInput) {
+      return Math.round((percentage / 100) * rmInput);
+    }
+    const maxKey = exercise.toLowerCase().includes("squat")
+      ? exercise.toLowerCase().includes("front")
+        ? "frontSquat"
+        : "backSquat"
+      : exercise.toLowerCase().includes("clean")
+      ? "clean"
+      : exercise.toLowerCase().includes("press")
+      ? "press"
+      : null;
+
+    if (!maxKey) return 0;
+
+    const max = userMaxes[maxKey as keyof UserMaxes];
+    return Math.round((percentage / 100) * max);
+  };
+
+  const handleRmInput = (exerciseId: string, value: string) => {
+    const newRmInputs = { ...rmInputs, [exerciseId]: parseInt(value) || 0 };
+    setRmInputs(newRmInputs);
+    localStorage.setItem(`rmInputs-${user}`, JSON.stringify(newRmInputs));
+  };
+
+  const dayColors = [
+    "bg-pink-100 hover:bg-pink-200",
+    "bg-purple-100 hover:bg-purple-200",
+    "bg-blue-100 hover:bg-blue-200",
+    "bg-green-100 hover:bg-green-200",
+    "bg-yellow-100 hover:bg-yellow-200",
+  ];
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-center mb-4 text-primary">
@@ -282,7 +323,7 @@ function WorkoutProgram({ user }: { user: User }) {
               weekIndex,
               workoutData.length
             )}, ${getGradientColor(weekIndex + 1, workoutData.length)})`,
-            borderColor: "transparent", // Remove the border to make the gradient more visible
+            borderColor: "transparent",
           }}
         >
           <CardHeader
@@ -320,7 +361,7 @@ function WorkoutProgram({ user }: { user: User }) {
                     </div>
                   </button>
                   {expandedDays.includes(`${week.number}-${day.name}`) && (
-                    <div className="mt-2 max-h-[60vh] overflow-y-auto bg-background/90 backdrop-blur-sm rounded-md">
+                    <div className="mt-2 max-h-[60vh] overflow-y-auto">
                       <ScrollArea className="w-full rounded-md border">
                         <div className="min-w-[1000px]">
                           <Table>
@@ -343,115 +384,147 @@ function WorkoutProgram({ user }: { user: User }) {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {day.exercises.map((exercise, exerciseIndex) => (
-                                <TableRow key={exerciseIndex}>
-                                  <TableCell className="font-medium sticky left-0 bg-background z-10">
-                                    <div className="flex items-start space-x-2 pr-2">
-                                      <div className="flex-1">
-                                        <span className="break-words">
-                                          {exercise.name}
-                                        </span>
+                              {day.exercises.map((exercise, exerciseIndex) => {
+                                const exerciseId = `${user}-${week.number}-${day.name}-${exerciseIndex}`;
+                                return (
+                                  <TableRow key={exerciseIndex}>
+                                    <TableCell className="font-medium sticky left-0 bg-background z-10">
+                                      <div className="flex items-start space-x-2 pr-2">
+                                        <div className="flex-1">
+                                          <span className="break-words">
+                                            {exercise.name}
+                                          </span>
+                                          {exercise.isRM && (
+                                            <Badge
+                                              variant="secondary"
+                                              className="ml-1"
+                                            >
+                                              RM
+                                            </Badge>
+                                          )}
+                                        </div>
                                         {exercise.isRM && (
-                                          <Badge
-                                            variant="secondary"
-                                            className="ml-1"
-                                          >
-                                            RM
-                                          </Badge>
+                                          <TooltipProvider>
+                                            <Tooltip
+                                              open={isTooltipOpen}
+                                              onOpenChange={setIsTooltipOpen}
+                                            >
+                                              <TooltipTrigger asChild>
+                                                <button
+                                                  onClick={() =>
+                                                    setIsTooltipOpen(true)
+                                                  }
+                                                  className="focus:outline-none"
+                                                >
+                                                  <HelpCircle className="h-4 w-4 flex-shrink-0 text-muted-foreground cursor-help" />
+                                                </button>
+                                              </TooltipTrigger>
+                                              <TooltipContent
+                                                side="top"
+                                                className="max-w-[280px] sm:max-w-sm p-4"
+                                              >
+                                                <button
+                                                  onClick={() =>
+                                                    setIsTooltipOpen(false)
+                                                  }
+                                                  className="absolute top-2 right-2 focus:outline-none"
+                                                >
+                                                  <X className="h-4 w-4" />
+                                                </button>
+                                                <p className="font-bold mb-2">
+                                                  RM (Rep Max)
+                                                </p>
+                                                <p>
+                                                  RM stands for "rep max" and
+                                                  means you'll take the exercise
+                                                  up to a maximum weight for the
+                                                  prescribed reps, e.g. 3RM,
+                                                  5RM, 1RM. If percentages
+                                                  follow an RM prescription,
+                                                  they are of that day's RM, not
+                                                  of the athlete's current 1RM.
+                                                  For example: 3RM, 90% x 3 x 2
+                                                  This would mean taking the
+                                                  exercise up to a max weight
+                                                  for 3 reps, then doing 2 more
+                                                  sets of 3 at 90% of that
+                                                  maximum weight. Sometimes it
+                                                  will be noted alongside RMs
+                                                  that they should not be
+                                                  absolute max testing on that
+                                                  day, but very challenging.
+                                                </p>
+                                              </TooltipContent>
+                                            </Tooltip>
+                                          </TooltipProvider>
                                         )}
                                       </div>
-                                      {exercise.isRM && (
-                                        <TooltipProvider>
-                                          <Tooltip
-                                            open={isTooltipOpen}
-                                            onOpenChange={setIsTooltipOpen}
-                                          >
-                                            <TooltipTrigger asChild>
-                                              <button
-                                                onClick={() =>
-                                                  setIsTooltipOpen(true)
-                                                }
-                                                className="focus:outline-none"
-                                              >
-                                                <HelpCircle className="h-4 w-4 flex-shrink-0 text-muted-foreground cursor-help" />
-                                              </button>
-                                            </TooltipTrigger>
-                                            <TooltipContent
-                                              side="top"
-                                              className="max-w-[280px] sm:max-w-sm p-4"
-                                            >
-                                              <button
-                                                onClick={() =>
-                                                  setIsTooltipOpen(false)
-                                                }
-                                                className="absolute top-2 right-2 focus:outline-none"
-                                              >
-                                                <X className="h-4 w-4" />
-                                              </button>
-                                              <p className="font-bold mb-2">
-                                                RM (Rep Max)
-                                              </p>
-                                              <p>
-                                                RM stands for &quot;rep
-                                                max&quot; and means you&apos;ll
-                                                take the exercise up to a
-                                                maximum weight for the
-                                                prescribed reps, e.g. 3RM, 5RM,
-                                                1RM. If percentages follow an RM
-                                                prescription, they are of that
-                                                day&apos;s RM, not of the
-                                                athlete&apos;s current 1RM. For
-                                                example: 3RM, 90% x 3 x 2 This
-                                                would mean taking the exercise
-                                                up to a max weight for 3 reps,
-                                                then doing 2 more sets of 3 at
-                                                90% of that maximum weight.
-                                                Sometimes it will be noted
-                                                alongside RMs that they should
-                                                not be absolute max testing on
-                                                that day, but very challenging.
-                                              </p>
-                                            </TooltipContent>
-                                          </Tooltip>
-                                        </TooltipProvider>
-                                      )}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-center sticky left-[300px] bg-background z-10">
-                                    {exercise.intensity}%
-                                  </TableCell>
-                                  {Array.from({ length: 10 }, (_, i) => (
-                                    <TableCell
-                                      key={i}
-                                      className="text-center p-0"
-                                    >
-                                      {exercise.sets[i] ? (
-                                        <div className="flex flex-col items-center py-2">
-                                          <div className="text-sm">
-                                            {exercise.sets[i].reps}
-                                          </div>
-                                          <div className="text-xs text-muted-foreground">
-                                            {exercise.sets[i].percentage}%
-                                          </div>
-                                          <Checkbox
-                                            checked={
-                                              progress[
-                                                `${user}-${week.number}-${day.name}-${exerciseIndex}`
-                                              ]?.[i] || false
-                                            }
-                                            onCheckedChange={() =>
-                                              toggleSet(
-                                                `${user}-${week.number}-${day.name}-${exerciseIndex}`,
-                                                i
-                                              )
-                                            }
-                                          />
-                                        </div>
-                                      ) : null}
                                     </TableCell>
-                                  ))}
-                                </TableRow>
-                              ))}
+                                    <TableCell className="text-center sticky left-[300px] bg-background z-10">
+                                      {exercise.intensity}%
+                                    </TableCell>
+                                    {Array.from({ length: 10 }, (_, i) => (
+                                      <TableCell
+                                        key={i}
+                                        className="text-center p-0"
+                                      >
+                                        {exercise.sets[i] ? (
+                                          <div className="flex flex-col items-center py-2">
+                                            <div className="text-sm">
+                                              {exercise.sets[i].reps}
+                                            </div>
+                                            {exercise.isRM && i === 0 ? (
+                                              <Input
+                                                type="number"
+                                                value={
+                                                  rmInputs[exerciseId] || ""
+                                                }
+                                                onChange={(e) =>
+                                                  handleRmInput(
+                                                    exerciseId,
+                                                    e.target.value
+                                                  )
+                                                }
+                                                className="w-16 h-8 text-xs"
+                                                placeholder="RM"
+                                              />
+                                            ) : (
+                                              <>
+                                                {rmInputs[exerciseId] && (
+                                                  <div className="text-xs text-muted-foreground">
+                                                    {
+                                                      exercise.sets[i]
+                                                        .percentage
+                                                    }
+                                                    %
+                                                  </div>
+                                                )}
+                                                <div className="text-xs font-medium">
+                                                  {calculateWeight(
+                                                    exercise.name,
+                                                    exercise.sets[i].percentage,
+                                                    rmInputs[exerciseId]
+                                                  ) ?? "-"}{" "}
+                                                  lbs
+                                                </div>
+                                              </>
+                                            )}
+                                            <Checkbox
+                                              checked={
+                                                progress[exerciseId]?.[i] ||
+                                                false
+                                              }
+                                              onCheckedChange={() =>
+                                                toggleSet(exerciseId, i)
+                                              }
+                                            />
+                                          </div>
+                                        ) : null}
+                                      </TableCell>
+                                    ))}
+                                  </TableRow>
+                                );
+                              })}
                             </TableBody>
                           </Table>
                         </div>
@@ -471,11 +544,17 @@ function WorkoutProgram({ user }: { user: User }) {
 
 export default function WorkoutProgramTabs() {
   const [activeTab, setActiveTab] = useState<User>("Zach");
+  const [userMaxes, setUserMaxes] = useState<AllUserMaxes>(defaultUserMaxes);
 
   useEffect(() => {
     const storedTab = localStorage.getItem("activeWorkoutTab") as User | null;
     if (storedTab) {
       setActiveTab(storedTab);
+    }
+
+    const storedMaxes = localStorage.getItem("userMaxes");
+    if (storedMaxes) {
+      setUserMaxes(JSON.parse(storedMaxes));
     }
   }, []);
 
@@ -498,10 +577,10 @@ export default function WorkoutProgramTabs() {
           <TabsTrigger value="Jake">Jake</TabsTrigger>
         </TabsList>
         <TabsContent value="Zach">
-          <WorkoutProgram user="Zach" />
+          <WorkoutProgram user="Zach" userMaxes={userMaxes.Zach} />
         </TabsContent>
         <TabsContent value="Jake">
-          <WorkoutProgram user="Jake" />
+          <WorkoutProgram user="Jake" userMaxes={userMaxes.Jake} />
         </TabsContent>
       </Tabs>
       <MaxesDrawer activeUser={activeTab} />
