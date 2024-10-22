@@ -32,6 +32,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { Label } from "@/components/ui/label";
 import { workoutData } from "@/lib/workouts-data";
 
 type User = "Zach" | "Jake";
@@ -61,13 +62,13 @@ const defaultUserMaxes: AllUserMaxes = {
     press: 185,
   },
 };
-
 function MaxesDrawer({ activeUser }: { activeUser: User }) {
   const [userMaxes, setUserMaxes] = useState<AllUserMaxes>(defaultUserMaxes);
   const [editMode, setEditMode] = useState(false);
   const [tempMaxes, setTempMaxes] = useState<UserMaxes>(
     defaultUserMaxes[activeUser]
   );
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const storedMaxes = localStorage.getItem("userMaxes");
@@ -98,17 +99,17 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
   };
 
   return (
-    <Drawer>
+    <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
         <Button
           variant="outline"
-          className="fixed bottom-4 right-4 h-12 w-12 rounded-full border-2 border-primary p-0"
+          className="fixed bottom-4 right-4 h-12 w-12 rounded-full p-0"
         >
           <Dumbbell className="h-6 w-6" />
           <span className="sr-only">View 1 RM Information</span>
         </Button>
       </DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="h-[85vh] sm:h-auto">
         <div className="mx-auto w-full max-w-sm">
           <DrawerHeader>
             <DrawerTitle>{activeUser}&apos;s 1 RM Information</DrawerTitle>
@@ -116,37 +117,38 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
               View and edit your one-rep max values.
             </DrawerDescription>
           </DrawerHeader>
-          <div className="p-4">
-            <Table>
-              <TableBody>
-                {Object.entries(userMaxes[activeUser]).map(
-                  ([exercise, weight]) => (
-                    <TableRow key={exercise}>
-                      <TableCell className="py-2 font-medium">
-                        {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
-                      </TableCell>
-                      <TableCell className="py-2 text-right">
-                        {editMode ? (
-                          <Input
-                            type="number"
-                            value={tempMaxes[exercise as keyof UserMaxes]}
-                            onChange={(e) =>
-                              handleInputChange(
-                                exercise as keyof UserMaxes,
-                                e.target.value
-                              )
-                            }
-                            className="w-20 text-right"
-                          />
-                        ) : (
-                          `${weight} lbs`
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )
-                )}
-              </TableBody>
-            </Table>
+          <div className="p-4 pb-0">
+            <div className="space-y-4">
+              {Object.entries(userMaxes[activeUser]).map(
+                ([exercise, weight]) => (
+                  <div key={exercise} className="flex flex-col space-y-1.5">
+                    <Label htmlFor={exercise}>
+                      {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
+                    </Label>
+                    <div className="flex items-center space-x-2">
+                      {editMode ? (
+                        <Input
+                          id={exercise}
+                          type="number"
+                          value={tempMaxes[exercise as keyof UserMaxes]}
+                          onChange={(e) =>
+                            handleInputChange(
+                              exercise as keyof UserMaxes,
+                              e.target.value
+                            )
+                          }
+                          className="flex-1"
+                        />
+                      ) : (
+                        <div className="flex-1 p-2 border rounded-md">
+                          {weight} lbs
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
           </div>
           <DrawerFooter>
             {editMode ? (
