@@ -1,6 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, HelpCircle, X, Dumbbell } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
+  X,
+  Dumbbell,
+  Minus,
+  Plus,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -81,10 +89,10 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
     setTempMaxes(userMaxes[activeUser]);
   }, [activeUser, userMaxes]);
 
-  const handleInputChange = (exercise: keyof UserMaxes, value: string) => {
+  const handleInputChange = (exercise: keyof UserMaxes, value: number) => {
     setTempMaxes((prev) => ({
       ...prev,
-      [exercise]: parseInt(value) || 0,
+      [exercise]: value,
     }));
   };
 
@@ -96,6 +104,20 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
     setUserMaxes(newUserMaxes);
     localStorage.setItem("userMaxes", JSON.stringify(newUserMaxes));
     setEditMode(false);
+  };
+
+  const incrementValue = (exercise: keyof UserMaxes) => {
+    setTempMaxes((prev) => ({
+      ...prev,
+      [exercise]: prev[exercise] + 5,
+    }));
+  };
+
+  const decrementValue = (exercise: keyof UserMaxes) => {
+    setTempMaxes((prev) => ({
+      ...prev,
+      [exercise]: Math.max(0, prev[exercise] - 5),
+    }));
   };
 
   return (
@@ -117,44 +139,64 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
               View and edit your one-rep max values.
             </DrawerDescription>
           </DrawerHeader>
-          <div className="p-4 pb-0">
-            <div className="space-y-4">
-              {Object.entries(userMaxes[activeUser]).map(
-                ([exercise, weight]) => (
-                  <div key={exercise} className="flex flex-col space-y-1.5">
-                    <Label htmlFor={exercise}>
-                      {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
-                    </Label>
-                    <div className="flex items-center space-x-2">
-                      {editMode ? (
-                        <Input
-                          id={exercise}
-                          type="number"
-                          value={tempMaxes[exercise as keyof UserMaxes]}
-                          onChange={(e) =>
-                            handleInputChange(
-                              exercise as keyof UserMaxes,
-                              e.target.value
-                            )
-                          }
-                          className="flex-1"
-                        />
-                      ) : (
-                        <div className="flex-1 p-2 border rounded-md">
-                          {weight} lbs
-                        </div>
-                      )}
-                    </div>
+          <ScrollArea className="h-[50vh] px-4">
+            <div className="space-y-6 pb-4">
+              {Object.entries(tempMaxes).map(([exercise, weight]) => (
+                <div key={exercise} className="space-y-2">
+                  <Label htmlFor={exercise} className="text-base font-medium">
+                    {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
+                  </Label>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        decrementValue(exercise as keyof UserMaxes)
+                      }
+                      disabled={!editMode}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      id={exercise}
+                      type="number"
+                      inputMode="numeric"
+                      value={weight}
+                      onChange={(e) =>
+                        handleInputChange(
+                          exercise as keyof UserMaxes,
+                          parseInt(e.target.value) || 0
+                        )
+                      }
+                      className="flex-1 text-center text-lg"
+                      disabled={!editMode}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        incrementValue(exercise as keyof UserMaxes)
+                      }
+                      disabled={!editMode}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
-                )
-              )}
+                </div>
+              ))}
             </div>
-          </div>
+          </ScrollArea>
           <DrawerFooter>
             {editMode ? (
               <>
                 <Button onClick={saveMaxes}>Save Changes</Button>
-                <Button variant="outline" onClick={() => setEditMode(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTempMaxes(userMaxes[activeUser]);
+                    setEditMode(false);
+                  }}
+                >
                   Cancel
                 </Button>
               </>
