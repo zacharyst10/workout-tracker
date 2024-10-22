@@ -12,6 +12,17 @@ body {
   }
 }
 
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  button, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
