@@ -348,10 +348,24 @@ function WorkoutProgram({ user }: { user: User }) {
                                                 RM (Rep Max)
                                               </p>
                                               <p>
-                                                This stands for Repetition
-                                                Maximum. It&apos;s the maximum
-                                                weight you can lift for a given
-                                                number of repetitions.
+                                                RM stands for &quot;rep
+                                                max&quot; and means you&apos;ll
+                                                take the exercise up to a
+                                                maximum weight for the
+                                                prescribed reps, e.g. 3RM, 5RM,
+                                                1RM. If percentages follow an RM
+                                                prescription, they are of that
+                                                day&apos;s RM, not of the
+                                                athlete&apos;s current 1RM. For
+                                                example: 3RM, 90% x 3 x 2 This
+                                                would mean taking the exercise
+                                                up to a max weight for 3 reps,
+                                                then doing 2 more sets of 3 at
+                                                90% of that maximum weight.
+                                                Sometimes it will be noted
+                                                alongside RMs that they should
+                                                not be absolute max testing on
+                                                that day, but very challenging.
                                               </p>
                                             </TooltipContent>
                                           </Tooltip>
