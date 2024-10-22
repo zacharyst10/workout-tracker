@@ -1,13 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  HelpCircle,
-  ChevronLeft,
-  ChevronRight,
-  X,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, HelpCircle, X, Dumbbell } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -29,7 +22,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { workoutData } from "@/lib/workouts-data"; // Assuming this is where the data is now stored
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { workoutData } from "@/lib/workouts-data";
 
 type User = "Zach" | "Jake";
 
@@ -59,8 +62,7 @@ const defaultUserMaxes: AllUserMaxes = {
   },
 };
 
-function FloatingInfoButton({ activeUser }: { activeUser: User }) {
-  const [isOpen, setIsOpen] = useState(false);
+function MaxesDrawer({ activeUser }: { activeUser: User }) {
   const [userMaxes, setUserMaxes] = useState<AllUserMaxes>(defaultUserMaxes);
   const [editMode, setEditMode] = useState(false);
   const [tempMaxes, setTempMaxes] = useState<UserMaxes>(
@@ -96,84 +98,85 @@ function FloatingInfoButton({ activeUser }: { activeUser: User }) {
   };
 
   return (
-    <div
-      className={`fixed top-1/2 -translate-y-1/2 right-0 transition-all duration-300 ${
-        isOpen ? "translate-x-0" : "translate-x-[calc(100%-24px)]"
-      }`}
-    >
-      <div className="flex items-stretch">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="bg-primary text-primary-foreground p-1 rounded-l-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+    <Drawer>
+      <DrawerTrigger asChild>
+        <Button
+          variant="outline"
+          className="fixed bottom-4 right-4 h-12 w-12 rounded-full border-2 border-primary p-0"
         >
-          {isOpen ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <ChevronLeft className="w-4 h-4" />
-          )}
-          <span className="sr-only">
-            {isOpen ? "Hide" : "Show"} 1 RM Information
-          </span>
-        </button>
-        <div className="bg-background border-y border-l border-input w-[300px] p-4 rounded-l-md shadow-lg">
-          <h3 className="font-semibold mb-2">{activeUser}&apos;s 1 RM</h3>
-          <Table>
-            <TableBody>
-              {Object.entries(userMaxes[activeUser]).map(
-                ([exercise, weight]) => (
-                  <TableRow key={exercise}>
-                    <TableCell className="py-2 font-medium">
-                      {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
-                    </TableCell>
-                    <TableCell className="py-2 text-right">
-                      {editMode ? (
-                        <Input
-                          type="number"
-                          value={tempMaxes[exercise as keyof UserMaxes]}
-                          onChange={(e) =>
-                            handleInputChange(
-                              exercise as keyof UserMaxes,
-                              e.target.value
-                            )
-                          }
-                          className="w-20 text-right"
-                        />
-                      ) : (
-                        `${weight} lbs`
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              )}
-            </TableBody>
-          </Table>
-          <div className="mt-4 flex justify-end">
+          <Dumbbell className="h-6 w-6" />
+          <span className="sr-only">View 1 RM Information</span>
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        <div className="mx-auto w-full max-w-sm">
+          <DrawerHeader>
+            <DrawerTitle>{activeUser}&apos;s 1 RM Information</DrawerTitle>
+            <DrawerDescription>
+              View and edit your one-rep max values.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4">
+            <Table>
+              <TableBody>
+                {Object.entries(userMaxes[activeUser]).map(
+                  ([exercise, weight]) => (
+                    <TableRow key={exercise}>
+                      <TableCell className="py-2 font-medium">
+                        {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
+                      </TableCell>
+                      <TableCell className="py-2 text-right">
+                        {editMode ? (
+                          <Input
+                            type="number"
+                            value={tempMaxes[exercise as keyof UserMaxes]}
+                            onChange={(e) =>
+                              handleInputChange(
+                                exercise as keyof UserMaxes,
+                                e.target.value
+                              )
+                            }
+                            className="w-20 text-right"
+                          />
+                        ) : (
+                          `${weight} lbs`
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <DrawerFooter>
             {editMode ? (
               <>
-                <Button onClick={saveMaxes} size="sm" className="mr-2">
-                  Save
-                </Button>
-                <Button
-                  onClick={() => setEditMode(false)}
-                  variant="outline"
-                  size="sm"
-                >
+                <Button onClick={saveMaxes}>Save Changes</Button>
+                <Button variant="outline" onClick={() => setEditMode(false)}>
                   Cancel
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setEditMode(true)} size="sm">
-                Edit
-              </Button>
+              <Button onClick={() => setEditMode(true)}>Edit Maxes</Button>
             )}
-          </div>
+            <DrawerClose asChild>
+              <Button variant="outline">Close</Button>
+            </DrawerClose>
+          </DrawerFooter>
         </div>
-      </div>
-    </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
 function WorkoutProgram({ user }: { user: User }) {
+  const dayColors = [
+    "bg-pink-100 hover:bg-pink-200",
+    "bg-purple-100 hover:bg-purple-200",
+    "bg-blue-100 hover:bg-blue-200",
+    "bg-green-100 hover:bg-green-200",
+    "bg-yellow-100 hover:bg-yellow-200",
+  ];
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
   const [progress, setProgress] = useState<Record<string, boolean[]>>({});
@@ -216,26 +219,30 @@ function WorkoutProgram({ user }: { user: User }) {
     });
   };
 
-  const colors = [
-    "bg-pink-100 hover:bg-pink-200",
-    "bg-purple-100 hover:bg-purple-200",
-    "bg-blue-100 hover:bg-blue-200",
-    "bg-green-100 hover:bg-green-200",
-    "bg-yellow-100 hover:bg-yellow-200",
-  ];
+  const getGradientColor = (index: number, total: number) => {
+    const hue = (index / total) * 60 + 180; // Gradient from 180 (cyan) to 240 (blue)
+    return `hsl(${hue}, 70%, 85%)`; // Higher lightness (85%) for pastel colors
+  };
 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-center mb-4 text-primary">
         {user}&apos;s Workout Program
       </h2>
-      {workoutData.map((week) => (
+      {workoutData.map((week, weekIndex) => (
         <Card
           key={week.number}
           className="overflow-hidden border-2 border-primary"
+          style={{
+            background: `linear-gradient(to bottom, ${getGradientColor(
+              weekIndex,
+              workoutData.length
+            )}, ${getGradientColor(weekIndex + 1, workoutData.length)})`,
+            borderColor: "transparent", // Remove the border to make the gradient more visible
+          }}
         >
           <CardHeader
-            className="p-4 bg-primary text-primary-foreground cursor-pointer"
+            className="p-4 bg-background/40 backdrop-blur-sm text-primary cursor-pointer"
             onClick={() => toggleWeek(week.number)}
           >
             <CardTitle className="flex justify-between items-center">
@@ -248,13 +255,13 @@ function WorkoutProgram({ user }: { user: User }) {
             </CardTitle>
           </CardHeader>
           {expandedWeeks.includes(week.number) && (
-            <CardContent className="p-4">
+            <CardContent className="p-4 bg-background/80 backdrop-blur-sm">
               {week.days.map((day, dayIndex) => (
                 <div key={day.name} className="mb-4 last:mb-0">
                   <button
                     onClick={() => toggleDay(`${week.number}-${day.name}`)}
                     className={`w-full p-2 rounded-md text-left font-semibold flex justify-between items-center ${
-                      colors[dayIndex % colors.length]
+                      dayColors[dayIndex % dayColors.length]
                     } transition-colors`}
                   >
                     <span>{day.name}</span>
@@ -269,7 +276,7 @@ function WorkoutProgram({ user }: { user: User }) {
                     </div>
                   </button>
                   {expandedDays.includes(`${week.number}-${day.name}`) && (
-                    <div className="mt-2 max-h-[60vh] overflow-y-auto">
+                    <div className="mt-2 max-h-[60vh] overflow-y-auto bg-background/90 backdrop-blur-sm rounded-md">
                       <ScrollArea className="w-full rounded-md border">
                         <div className="min-w-[1000px]">
                           <Table>
@@ -439,7 +446,7 @@ export default function WorkoutProgramTabs() {
           <WorkoutProgram user="Jake" />
         </TabsContent>
       </Tabs>
-      <FloatingInfoButton activeUser={activeTab} />
+      <MaxesDrawer activeUser={activeTab} />
     </div>
   );
 }
