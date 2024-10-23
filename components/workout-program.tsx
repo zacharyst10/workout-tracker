@@ -333,9 +333,9 @@ function WorkoutProgram({
             <CardTitle className="flex justify-between items-center">
               <span className="text-xl font-semibold">Week {week.number}</span>
               {expandedWeeks.includes(week.number) ? (
-                <ChevronUp />
+                <ChevronUp className="h-5 w-5" />
               ) : (
-                <ChevronDown />
+                <ChevronDown className="h-5 w-5" />
               )}
             </CardTitle>
           </CardHeader>
@@ -345,38 +345,38 @@ function WorkoutProgram({
                 <div key={day.name} className="mb-4 last:mb-0">
                   <button
                     onClick={() => toggleDay(`${week.number}-${day.name}`)}
-                    className={`w-full p-2 rounded-md text-left font-semibold flex justify-between items-center ${
+                    className={`w-full p-3 rounded-md text-left font-semibold flex justify-between items-center ${
                       dayColors[dayIndex % dayColors.length]
                     } transition-colors`}
                   >
-                    <span>{day.name}</span>
+                    <span className="text-lg">{day.name}</span>
                     <div className="flex items-center text-sm">
                       <span className="mr-4">AVG {day.avgIntensity}%</span>
                       <span className="mr-2">VOL {day.totalVolume}</span>
                       {expandedDays.includes(`${week.number}-${day.name}`) ? (
-                        <ChevronUp />
+                        <ChevronUp className="h-5 w-5" />
                       ) : (
-                        <ChevronDown />
+                        <ChevronDown className="h-5 w-5" />
                       )}
                     </div>
                   </button>
                   {expandedDays.includes(`${week.number}-${day.name}`) && (
-                    <div className="mt-2 max-h-[60vh] overflow-y-auto">
+                    <div className="mt-4 max-h-[60vh] overflow-y-auto">
                       <ScrollArea className="w-full rounded-md border">
                         <div className="min-w-[1000px]">
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="w-[300px] sticky left-0 bg-background z-20">
+                                <TableHead className="w-[300px] sticky left-0 bg-background z-20 font-bold">
                                   Exercise
                                 </TableHead>
-                                <TableHead className="w-[100px] sticky left-[300px] bg-background z-20 text-center">
+                                <TableHead className="w-[100px] sticky left-[300px] bg-background z-20 text-center font-bold">
                                   %RM
                                 </TableHead>
                                 {Array.from({ length: 10 }, (_, i) => (
                                   <TableHead
                                     key={i}
-                                    className="w-[60px] text-center"
+                                    className="w-[80px] text-center font-bold"
                                   >
                                     Set {i + 1}
                                   </TableHead>
@@ -387,17 +387,20 @@ function WorkoutProgram({
                               {day.exercises.map((exercise, exerciseIndex) => {
                                 const exerciseId = `${user}-${week.number}-${day.name}-${exerciseIndex}`;
                                 return (
-                                  <TableRow key={exerciseIndex}>
+                                  <TableRow
+                                    key={exerciseIndex}
+                                    className="hover:bg-muted/50"
+                                  >
                                     <TableCell className="font-medium sticky left-0 bg-background z-10">
                                       <div className="flex items-start space-x-2 pr-2">
                                         <div className="flex-1">
-                                          <span className="break-words">
+                                          <span className="break-words text-base">
                                             {exercise.name}
                                           </span>
                                           {exercise.isRM && (
                                             <Badge
                                               variant="secondary"
-                                              className="ml-1"
+                                              className="ml-2"
                                             >
                                               RM
                                             </Badge>
@@ -416,7 +419,7 @@ function WorkoutProgram({
                                                   }
                                                   className="focus:outline-none"
                                                 >
-                                                  <HelpCircle className="h-4 w-4 flex-shrink-0 text-muted-foreground cursor-help" />
+                                                  <HelpCircle className="h-5 w-5 flex-shrink-0 text-muted-foreground cursor-help" />
                                                 </button>
                                               </TooltipTrigger>
                                               <TooltipContent
@@ -435,24 +438,10 @@ function WorkoutProgram({
                                                   RM (Rep Max)
                                                 </p>
                                                 <p>
-                                                  RM stands for "rep max" and
-                                                  means you'll take the exercise
-                                                  up to a maximum weight for the
-                                                  prescribed reps, e.g. 3RM,
-                                                  5RM, 1RM. If percentages
-                                                  follow an RM prescription,
-                                                  they are of that day's RM, not
-                                                  of the athlete's current 1RM.
-                                                  For example: 3RM, 90% x 3 x 2
-                                                  This would mean taking the
-                                                  exercise up to a max weight
-                                                  for 3 reps, then doing 2 more
-                                                  sets of 3 at 90% of that
-                                                  maximum weight. Sometimes it
-                                                  will be noted alongside RMs
-                                                  that they should not be
-                                                  absolute max testing on that
-                                                  day, but very challenging.
+                                                  This stands for Repetition
+                                                  Maximum. It's the maximum
+                                                  weight you can lift for a
+                                                  given number of repetitions.
                                                 </p>
                                               </TooltipContent>
                                             </Tooltip>
@@ -460,18 +449,18 @@ function WorkoutProgram({
                                         )}
                                       </div>
                                     </TableCell>
-                                    <TableCell className="text-center sticky left-[300px] bg-background z-10">
+                                    <TableCell className="text-center sticky left-[300px] bg-background z-10 font-semibold">
                                       {exercise.intensity}%
                                     </TableCell>
                                     {Array.from({ length: 10 }, (_, i) => (
                                       <TableCell
                                         key={i}
-                                        className="text-center p-0"
+                                        className="text-center p-2"
                                       >
                                         {exercise.sets[i] ? (
-                                          <div className="flex flex-col items-center py-2">
-                                            <div className="text-sm">
-                                              {exercise.sets[i].reps}
+                                          <div className="flex flex-col items-center space-y-1">
+                                            <div className="text-sm font-medium">
+                                              {exercise.sets[i].reps} reps
                                             </div>
                                             {exercise.isRM && i === 0 ? (
                                               <Input
@@ -485,21 +474,15 @@ function WorkoutProgram({
                                                     e.target.value
                                                   )
                                                 }
-                                                className="w-16 h-8 text-xs"
-                                                placeholder="RM"
+                                                className="w-20 h-8 text-sm"
+                                                placeholder="RM (lbs)"
                                               />
                                             ) : (
                                               <>
-                                                {rmInputs[exerciseId] && (
-                                                  <div className="text-xs text-muted-foreground">
-                                                    {
-                                                      exercise.sets[i]
-                                                        .percentage
-                                                    }
-                                                    %
-                                                  </div>
-                                                )}
-                                                <div className="text-xs font-medium">
+                                                <div className="text-xs text-muted-foreground">
+                                                  {exercise.sets[i].percentage}%
+                                                </div>
+                                                <div className="text-sm font-semibold">
                                                   {calculateWeight(
                                                     exercise.name,
                                                     exercise.sets[i].percentage,
@@ -517,6 +500,7 @@ function WorkoutProgram({
                                               onCheckedChange={() =>
                                                 toggleSet(exerciseId, i)
                                               }
+                                              className="mt-1"
                                             />
                                           </div>
                                         ) : null}
