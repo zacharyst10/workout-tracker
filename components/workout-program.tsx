@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronUp,
   HelpCircle,
-  X,
   Dumbbell,
   Minus,
   Plus,
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -219,7 +218,6 @@ function WorkoutProgram({
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
   const [progress, setProgress] = useState<Record<string, boolean[]>>({});
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const [rmInputs, setRmInputs] = useState<RMInput>({});
 
   useEffect(() => {
@@ -342,7 +340,7 @@ function WorkoutProgram({
           {expandedWeeks.includes(week.number) && (
             <CardContent className="p-4 bg-background/80 backdrop-blur-sm">
               {week.days.map((day, dayIndex) => (
-                <div key={day.name} className="mb-4 last:mb-0">
+                <div key={day.name} className="mb-6 last:mb-0">
                   <button
                     onClick={() => toggleDay(`${week.number}-${day.name}`)}
                     className={`w-full p-3 rounded-md text-left font-semibold flex justify-between items-center ${
@@ -361,159 +359,121 @@ function WorkoutProgram({
                     </div>
                   </button>
                   {expandedDays.includes(`${week.number}-${day.name}`) && (
-                    <div className="mt-4 max-h-[60vh] overflow-y-auto">
-                      <ScrollArea className="w-full rounded-md border">
-                        <div className="min-w-[1000px]">
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead className="w-[300px] sticky left-0 bg-background z-20 font-bold">
-                                  Exercise
-                                </TableHead>
-                                <TableHead className="w-[100px] sticky left-[300px] bg-background z-20 text-center font-bold">
-                                  %RM
-                                </TableHead>
-                                {Array.from({ length: 10 }, (_, i) => (
-                                  <TableHead
-                                    key={i}
-                                    className="w-[80px] text-center font-bold"
-                                  >
-                                    Set {i + 1}
-                                  </TableHead>
-                                ))}
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {day.exercises.map((exercise, exerciseIndex) => {
-                                const exerciseId = `${user}-${week.number}-${day.name}-${exerciseIndex}`;
-                                return (
-                                  <TableRow
-                                    key={exerciseIndex}
-                                    className="hover:bg-muted/50"
-                                  >
-                                    <TableCell className="font-medium sticky left-0 bg-background z-10">
-                                      <div className="flex items-start space-x-2 pr-2">
-                                        <div className="flex-1">
-                                          <span className="break-words text-base">
-                                            {exercise.name}
-                                          </span>
-                                          {exercise.isRM && (
-                                            <Badge
-                                              variant="secondary"
-                                              className="ml-2"
-                                            >
-                                              RM
-                                            </Badge>
-                                          )}
-                                        </div>
-                                        {exercise.isRM && (
-                                          <TooltipProvider>
-                                            <Tooltip
-                                              open={isTooltipOpen}
-                                              onOpenChange={setIsTooltipOpen}
-                                            >
-                                              <TooltipTrigger asChild>
-                                                <button
-                                                  onClick={() =>
-                                                    setIsTooltipOpen(true)
-                                                  }
-                                                  className="focus:outline-none"
-                                                >
-                                                  <HelpCircle className="h-5 w-5 flex-shrink-0 text-muted-foreground cursor-help" />
-                                                </button>
-                                              </TooltipTrigger>
-                                              <TooltipContent
-                                                side="top"
-                                                className="max-w-[280px] sm:max-w-sm p-4"
-                                              >
-                                                <button
-                                                  onClick={() =>
-                                                    setIsTooltipOpen(false)
-                                                  }
-                                                  className="absolute top-2 right-2 focus:outline-none"
-                                                >
-                                                  <X className="h-4 w-4" />
-                                                </button>
-                                                <p className="font-bold mb-2">
-                                                  RM (Rep Max)
-                                                </p>
-                                                <p>
-                                                  This stands for Repetition
-                                                  Maximum. It's the maximum
-                                                  weight you can lift for a
-                                                  given number of repetitions.
-                                                </p>
-                                              </TooltipContent>
-                                            </Tooltip>
-                                          </TooltipProvider>
-                                        )}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-center sticky left-[300px] bg-background z-10 font-semibold">
-                                      {exercise.intensity}%
-                                    </TableCell>
-                                    {Array.from({ length: 10 }, (_, i) => (
-                                      <TableCell
-                                        key={i}
-                                        className="text-center p-2"
+                    <div className="mt-4 space-y-6">
+                      {day.exercises.map((exercise, exerciseIndex) => {
+                        const exerciseId = `${user}-${week.number}-${day.name}-${exerciseIndex}`;
+                        return (
+                          <Card key={exerciseId} className="overflow-hidden">
+                            <CardHeader className="py-2 px-4 bg-muted">
+                              <CardTitle className="text-base flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <span>{exercise.name}</span>
+                                  {exercise.isRM && (
+                                    <Badge variant="secondary">RM</Badge>
+                                  )}
+                                </div>
+                                {exercise.isRM && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <HelpCircle className="h-5 w-5 text-muted-foreground cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent
+                                        side="top"
+                                        className="max-w-[280px] p-4"
                                       >
-                                        {exercise.sets[i] ? (
-                                          <div className="flex flex-col items-center space-y-1">
-                                            <div className="text-sm font-medium">
-                                              {exercise.sets[i].reps} reps
-                                            </div>
-                                            {exercise.isRM && i === 0 ? (
-                                              <Input
-                                                type="number"
-                                                value={
-                                                  rmInputs[exerciseId] || ""
-                                                }
-                                                onChange={(e) =>
-                                                  handleRmInput(
-                                                    exerciseId,
-                                                    e.target.value
-                                                  )
-                                                }
-                                                className="w-20 h-8 text-sm"
-                                                placeholder="RM (lbs)"
-                                              />
-                                            ) : (
-                                              <>
-                                                <div className="text-xs text-muted-foreground">
-                                                  {exercise.sets[i].percentage}%
-                                                </div>
-                                                <div className="text-sm font-semibold">
-                                                  {calculateWeight(
-                                                    exercise.name,
-                                                    exercise.sets[i].percentage,
-                                                    rmInputs[exerciseId]
-                                                  ) ?? "-"}{" "}
-                                                  lbs
-                                                </div>
-                                              </>
-                                            )}
-                                            <Checkbox
-                                              checked={
-                                                progress[exerciseId]?.[i] ||
-                                                false
-                                              }
-                                              onCheckedChange={() =>
-                                                toggleSet(exerciseId, i)
-                                              }
-                                              className="mt-1"
-                                            />
-                                          </div>
-                                        ) : null}
-                                      </TableCell>
-                                    ))}
+                                        <p className="font-bold mb-2">
+                                          RM (Rep Max)
+                                        </p>
+                                        <p>
+                                          This stands for Repetition Maximum.
+                                          It's the maximum weight you can lift
+                                          for a given number of repetitions.
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead className="w-[100px] text-center">
+                                      Set
+                                    </TableHead>
+                                    <TableHead className="w-[100px] text-center">
+                                      Reps
+                                    </TableHead>
+                                    <TableHead className="w-[100px] text-center">
+                                      %RM
+                                    </TableHead>
+                                    <TableHead className="text-center">
+                                      Weight
+                                    </TableHead>
+                                    <TableHead className="w-[100px] text-center">
+                                      Done
+                                    </TableHead>
                                   </TableRow>
-                                );
-                              })}
-                            </TableBody>
-                          </Table>
-                        </div>
-                        <ScrollBar orientation="horizontal" />
-                      </ScrollArea>
+                                </TableHeader>
+                                <TableBody>
+                                  {exercise.sets.map((set, setIndex) => (
+                                    <TableRow key={setIndex}>
+                                      <TableCell className="text-center font-medium">
+                                        {setIndex + 1}
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        {set.reps}
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        {set.percentage}%
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        {exercise.isRM && setIndex === 0 ? (
+                                          <Input
+                                            type="number"
+                                            value={rmInputs[exerciseId] || ""}
+                                            onChange={(e) =>
+                                              handleRmInput(
+                                                exerciseId,
+                                                e.target.value
+                                              )
+                                            }
+                                            className="w-24 h-8 text-sm mx-auto"
+                                            placeholder="RM (lbs)"
+                                          />
+                                        ) : (
+                                          <span className="font-semibold">
+                                            {calculateWeight(
+                                              exercise.name,
+                                              set.percentage,
+                                              rmInputs[exerciseId]
+                                            ) ?? "-"}{" "}
+                                            lbs
+                                          </span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <Checkbox
+                                          checked={
+                                            progress[exerciseId]?.[setIndex] ||
+                                            false
+                                          }
+                                          onCheckedChange={() =>
+                                            toggleSet(exerciseId, setIndex)
+                                          }
+                                          className="mx-auto"
+                                        />
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
