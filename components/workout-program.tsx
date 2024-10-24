@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
 import { workoutData } from "@/lib/workouts-data";
+import confetti from "canvas-confetti";
 
 type User = "Zach" | "Jake";
 
@@ -217,6 +218,7 @@ function WorkoutProgram({
 }) {
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([]);
   const [expandedDays, setExpandedDays] = useState<string[]>([]);
+  const [expandedExercises, setExpandedExercises] = useState<string[]>([]);
   const [progress, setProgress] = useState<Record<string, boolean[]>>({});
   const [rmInputs, setRmInputs] = useState<RMInput>({});
 
@@ -230,6 +232,15 @@ function WorkoutProgram({
       setRmInputs(JSON.parse(storedRmInputs));
     }
   }, [user]);
+
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#4CAF50", "#2196F3", "#9C27B0", "#FF9800"],
+    });
+  };
 
   const toggleWeek = (weekNumber: number) => {
     setExpandedWeeks((prev) =>
@@ -247,12 +258,46 @@ function WorkoutProgram({
     );
   };
 
-  const toggleSet = (exerciseId: string, setIndex: number) => {
+  const toggleExercise = (exerciseId: string) => {
+    setExpandedExercises((prev) =>
+      prev.includes(exerciseId)
+        ? prev.filter((id) => id !== exerciseId)
+        : [...prev, exerciseId]
+    );
+  };
+
+  const isExerciseCompleted = (exerciseId: string, totalSets: number) => {
+    const exerciseSets = progress[exerciseId] || [];
+    return (
+      exerciseSets.length === totalSets && exerciseSets.every((set) => set)
+    );
+  };
+
+  const toggleSet = (
+    exerciseId: string,
+    setIndex: number,
+    totalSets: number
+  ) => {
     setProgress((prev) => {
-      const exerciseSets = prev[exerciseId] || [];
+      const exerciseSets = prev[exerciseId] || Array(totalSets).fill(false);
       const newExerciseSets = [...exerciseSets];
       newExerciseSets[setIndex] = !newExerciseSets[setIndex];
       const newProgress = { ...prev, [exerciseId]: newExerciseSets };
+
+      // Check if this was the last set to complete the exercise
+      const wasIncomplete = exerciseSets.some((set) => !set);
+      const isNowComplete = newExerciseSets.every((set) => set);
+
+      if (wasIncomplete && isNowComplete) {
+        // Trigger confetti and collapse exercise
+        setTimeout(() => {
+          triggerConfetti();
+          setExpandedExercises((prev) =>
+            prev.filter((id) => id !== exerciseId)
+          );
+        }, 300);
+      }
+
       localStorage.setItem(
         `workoutProgress-${user}`,
         JSON.stringify(newProgress)
@@ -362,115 +407,154 @@ function WorkoutProgram({
                     <div className="mt-4 space-y-6">
                       {day.exercises.map((exercise, exerciseIndex) => {
                         const exerciseId = `${user}-${week.number}-${day.name}-${exerciseIndex}`;
+                        const isCompleted = isExerciseCompleted(
+                          exerciseId,
+                          exercise.sets.length
+                        );
+                        const isExpanded =
+                          expandedExercises.includes(exerciseId);
+
                         return (
-                          <Card key={exerciseId} className="overflow-hidden">
-                            <CardHeader className="py-2 px-4 bg-muted">
+                          <Card
+                            key={exerciseId}
+                            className={`overflow-hidden transition-all duration-300 ${
+                              isCompleted ? "bg-green-50" : ""
+                            }`}
+                          >
+                            <CardHeader
+                              className={`py-2 px-4 cursor-pointer ${
+                                isCompleted ? "bg-green-100" : "bg-muted"
+                              }`}
+                              onClick={() => toggleExercise(exerciseId)}
+                            >
                               <CardTitle className="text-base flex items-center justify-between">
                                 <div className="flex items-center space-x-2">
                                   <span>{exercise.name}</span>
                                   {exercise.isRM && (
                                     <Badge variant="secondary">RM</Badge>
                                   )}
+                                  {isCompleted && (
+                                    <Badge
+                                      variant="success"
+                                      className="bg-green-500 text-white"
+                                    >
+                                      Completed
+                                    </Badge>
+                                  )}
                                 </div>
-                                {exercise.isRM && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <HelpCircle className="h-5 w-5 text-muted-foreground cursor-help" />
-                                      </TooltipTrigger>
-                                      <TooltipContent
-                                        side="top"
-                                        className="max-w-[280px] p-4"
-                                      >
-                                        <p className="font-bold mb-2">
-                                          RM (Rep Max)
-                                        </p>
-                                        <p>
-                                          This stands for Repetition Maximum.
-                                          It's the maximum weight you can lift
-                                          for a given number of repetitions.
-                                        </p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
+                                <div className="flex items-center space-x-2">
+                                  {exercise.isRM && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <HelpCircle className="h-5 w-5 text-muted-foreground cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent
+                                          side="top"
+                                          className="max-w-[280px] p-4"
+                                        >
+                                          <p className="font-bold mb-2">
+                                            RM (Rep Max)
+                                          </p>
+                                          <p>
+                                            This stands for Repetition Maximum.
+                                            It's the maximum weight you can lift
+                                            for a given number of repetitions.
+                                          </p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                  {isExpanded ? (
+                                    <ChevronUp className="h-5 w-5" />
+                                  ) : (
+                                    <ChevronDown className="h-5 w-5" />
+                                  )}
+                                </div>
                               </CardTitle>
                             </CardHeader>
-                            <CardContent className="p-0">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="w-[100px] text-center">
-                                      Set
-                                    </TableHead>
-                                    <TableHead className="w-[100px] text-center">
-                                      Reps
-                                    </TableHead>
-                                    <TableHead className="w-[100px] text-center">
-                                      %RM
-                                    </TableHead>
-                                    <TableHead className="text-center">
-                                      Weight
-                                    </TableHead>
-                                    <TableHead className="w-[100px] text-center">
-                                      Done
-                                    </TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {exercise.sets.map((set, setIndex) => (
-                                    <TableRow key={setIndex}>
-                                      <TableCell className="text-center font-medium">
-                                        {setIndex + 1}
-                                      </TableCell>
-                                      <TableCell className="text-center">
-                                        {set.reps}
-                                      </TableCell>
-                                      <TableCell className="text-center">
-                                        {set.percentage}%
-                                      </TableCell>
-                                      <TableCell className="text-center">
-                                        {exercise.isRM && setIndex === 0 ? (
-                                          <Input
-                                            type="number"
-                                            value={rmInputs[exerciseId] || ""}
-                                            onChange={(e) =>
-                                              handleRmInput(
+                            {isExpanded && (
+                              <CardContent className="p-0">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead className="w-[100px] text-center">
+                                        Set
+                                      </TableHead>
+                                      <TableHead className="w-[100px] text-center">
+                                        Reps
+                                      </TableHead>
+                                      <TableHead className="w-[100px] text-center">
+                                        %RM
+                                      </TableHead>
+                                      <TableHead className="text-center">
+                                        Weight
+                                      </TableHead>
+                                      <TableHead className="w-[100px] text-center">
+                                        Done
+                                      </TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {exercise.sets.map((set, setIndex) => (
+                                      <TableRow key={setIndex}>
+                                        <TableCell className="text-center font-medium">
+                                          {setIndex + 1}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                          {set.reps}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                          {set.percentage}%
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                          {exercise.isRM && setIndex === 0 ? (
+                                            <Input
+                                              type="number"
+                                              value={rmInputs[exerciseId] || ""}
+                                              onChange={(e) =>
+                                                handleRmInput(
+                                                  exerciseId,
+                                                  e.target.value
+                                                )
+                                              }
+                                              className="w-24 h-8 text-sm mx-auto"
+                                              placeholder="RM (lbs)"
+                                            />
+                                          ) : (
+                                            <span className="font-semibold">
+                                              {calculateWeight(
+                                                exercise.name,
+                                                set.percentage,
+                                                rmInputs[exerciseId]
+                                              ) ?? "-"}{" "}
+                                              lbs
+                                            </span>
+                                          )}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                          <Checkbox
+                                            checked={
+                                              progress[exerciseId]?.[
+                                                setIndex
+                                              ] || false
+                                            }
+                                            onCheckedChange={() =>
+                                              toggleSet(
                                                 exerciseId,
-                                                e.target.value
+                                                setIndex,
+                                                exercise.sets.length
                                               )
                                             }
-                                            className="w-24 h-8 text-sm mx-auto"
-                                            placeholder="RM (lbs)"
+                                            className="mx-auto"
                                           />
-                                        ) : (
-                                          <span className="font-semibold">
-                                            {calculateWeight(
-                                              exercise.name,
-                                              set.percentage,
-                                              rmInputs[exerciseId]
-                                            ) ?? "-"}{" "}
-                                            lbs
-                                          </span>
-                                        )}
-                                      </TableCell>
-                                      <TableCell className="text-center">
-                                        <Checkbox
-                                          checked={
-                                            progress[exerciseId]?.[setIndex] ||
-                                            false
-                                          }
-                                          onCheckedChange={() =>
-                                            toggleSet(exerciseId, setIndex)
-                                          }
-                                          className="mx-auto"
-                                        />
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </CardContent>
+                                        </TableCell>
+                                      </TableRow>
+                                    ))}
+                                  </TableBody>
+                                </Table>
+                              </CardContent>
+                            )}
                           </Card>
                         );
                       })}
