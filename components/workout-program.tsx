@@ -124,7 +124,7 @@ function FunDailyMotivation() {
             </p>
             <p className="text-xl font-semibold text-primary min-h-[4rem]">
               {displayedQuote}
-              <span className="animate-blink">|</span>
+              {!isTyping && <span className="animate-blink">|</span>}
             </p>
           </div>
           <div className="w-full md:w-1/2 h-64 md:h-auto relative">
