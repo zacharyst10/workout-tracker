@@ -143,7 +143,7 @@ export const workoutData: Week[] = [
         totalVolume: 30,
         exercises: [
           {
-            name: "Clean + Front Squat + Jerk - 1+1+1 (% of RM)",
+            name: "Clean + Front Squat - 1+1 (% of RM)",
             sets: Array(3).fill({ reps: 3, percentage: 90 }),
             totalReps: 9,
             intensity: 90,
@@ -345,7 +345,7 @@ export const workoutData: Week[] = [
         totalVolume: 30,
         exercises: [
           {
-            name: "Clean + Front Squat + Jerk - 1+1+1 (% of RM)",
+            name: "Clean + Front Squat - 1+1 (% of RM)",
             sets: Array(3).fill({ reps: 3, percentage: 90 }),
             totalReps: 9,
             intensity: 90,

@@ -43,6 +43,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { workoutData } from "@/lib/workouts-data";
 import confetti from "canvas-confetti";
+import Image from "next/image";
+import david from "@/public/david.png";
 
 type User = "Zach" | "Jake";
 
@@ -66,6 +68,83 @@ const defaultUserMaxes: AllUserMaxes = {
 type RMInput = {
   [key: string]: number;
 };
+
+function FunDailyMotivation() {
+  const [quote, setQuote] = useState("");
+  const [displayedQuote, setDisplayedQuote] = useState("");
+  const [isTyping, setIsTyping] = useState(true);
+
+  const motivationalStatements = [
+    "Face your fears head-on and watch yourself grow!",
+    "Push beyond your limits every single day!",
+    "Embrace the discomfort zone - that's where growth happens!",
+    "Your mind is your superpower. Train it relentlessly!",
+    "Turn every challenge into a stepping stone!",
+    "Discipline is your secret weapon to achieve greatness!",
+    "Your potential is limitless. Prove it to yourself daily!",
+    "Level up your mental toughness - it's your best muscle!",
+    "Take charge of your life. No excuses, just action!",
+    "The path to awesome is paved with sweat and determination!",
+  ];
+
+  useEffect(() => {
+    const today = new Date();
+    const startOfYear = new Date(today.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor(
+      (today.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const index = dayOfYear % motivationalStatements.length;
+    setQuote(motivationalStatements[index]);
+  }, []);
+
+  useEffect(() => {
+    if (quote) {
+      let i = 0;
+      const typingEffect = setInterval(() => {
+        if (i < quote.length) {
+          setDisplayedQuote(quote.slice(0, i + 1));
+          i++;
+        } else {
+          clearInterval(typingEffect);
+          setIsTyping(false);
+        }
+      }, 50); // Adjust the speed of typing here
+
+      return () => clearInterval(typingEffect);
+    }
+  }, [quote]);
+
+  return (
+    <div className="flex items-center justify-center rounded-lg bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4">
+      <Card className="w-full mx-auto">
+        <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between bg-white rounded-lg shadow-xl overflow-hidden">
+          <div className="w-full md:w-1/2 mb-4 md:mb-0">
+            <p className="text-2xl font-bold text-primary mb-2">
+              Daily Motivation
+            </p>
+            <p className="text-xl font-semibold text-primary min-h-[4rem]">
+              {displayedQuote}
+              <span className="animate-blink">|</span>
+            </p>
+          </div>
+          <div className="w-full md:w-1/2 h-64 md:h-auto relative">
+            <Image
+              src={david}
+              alt="David Goggins motivational gif"
+              layout="fill"
+              objectFit="cover"
+              className="rounded-lg"
+            />
+            <p className="absolute bottom-2 right-2 text-xs text-white bg-black bg-opacity-50 px-2 py-1 rounded">
+              GIF: David Goggins
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function MaxesDrawer({ activeUser }: { activeUser: User }) {
   const [userMaxes, setUserMaxes] = useState<AllUserMaxes>(defaultUserMaxes);
   const [editMode, setEditMode] = useState(false);
@@ -306,11 +385,6 @@ function WorkoutProgram({
     });
   };
 
-  const getGradientColor = (index: number, total: number) => {
-    const hue = (index / total) * 60 + 180; // Gradient from 180 (cyan) to 240 (blue)
-    return `hsl(${hue}, 70%, 85%)`; // Higher lightness (85%) for pastel colors
-  };
-
   const calculateWeight = (
     exercise: string,
     percentage: number,
@@ -345,11 +419,11 @@ function WorkoutProgram({
   };
 
   const dayColors = [
-    "bg-pink-100 hover:bg-pink-200",
-    "bg-purple-100 hover:bg-purple-200",
-    "bg-blue-100 hover:bg-blue-200",
-    "bg-green-100 hover:bg-green-200",
-    "bg-yellow-100 hover:bg-yellow-200",
+    "bg-pink-200 hover:bg-pink-300",
+    "bg-purple-200 hover:bg-purple-300",
+    "bg-blue-200 hover:bg-blue-300",
+    "bg-green-200 hover:bg-green-300",
+    "bg-yellow-200 hover:bg-yellow-300",
   ];
 
   return (
@@ -357,17 +431,10 @@ function WorkoutProgram({
       <h2 className="text-2xl font-bold text-center mb-4 text-primary">
         {user}&apos;s Workout Program
       </h2>
-      {workoutData.map((week, weekIndex) => (
+      {workoutData.map((week) => (
         <Card
           key={week.number}
-          className="overflow-hidden border-2 border-primary"
-          style={{
-            background: `linear-gradient(to bottom, ${getGradientColor(
-              weekIndex,
-              workoutData.length
-            )}, ${getGradientColor(weekIndex + 1, workoutData.length)})`,
-            borderColor: "transparent",
-          }}
+          className="overflow-hidden border-2 bg-primary/50 border-primary"
         >
           <CardHeader
             className="p-4 bg-background/40 backdrop-blur-sm text-primary cursor-pointer"
@@ -417,14 +484,10 @@ function WorkoutProgram({
                         return (
                           <Card
                             key={exerciseId}
-                            className={`overflow-hidden transition-all duration-300 ${
-                              isCompleted ? "bg-green-50" : ""
-                            }`}
+                            className="overflow-hidden transition-all duration-300"
                           >
                             <CardHeader
-                              className={`py-2 px-4 cursor-pointer ${
-                                isCompleted ? "bg-green-100" : "bg-muted"
-                              }`}
+                              className="py-2 px-4 cursor-pointer"
                               onClick={() => toggleExercise(exerciseId)}
                             >
                               <CardTitle className="text-base flex items-center justify-between">
@@ -438,7 +501,7 @@ function WorkoutProgram({
                                       variant="success"
                                       className="bg-green-500 text-white"
                                     >
-                                      Completed
+                                      Crushed it!
                                     </Badge>
                                   )}
                                 </div>
@@ -604,6 +667,7 @@ export default function WorkoutProgramTabs() {
           <TabsTrigger value="Zach">Zach</TabsTrigger>
           <TabsTrigger value="Jake">Jake</TabsTrigger>
         </TabsList>
+        <FunDailyMotivation />
         <TabsContent value="Zach">
           <WorkoutProgram user="Zach" userMaxes={userMaxes.Zach} />
         </TabsContent>
