@@ -131,13 +131,8 @@ function FunDailyMotivation() {
             <Image
               src={david}
               alt="David Goggins motivational gif"
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg"
+              className="rounded-lg object-contain"
             />
-            <p className="absolute bottom-2 right-2 text-xs text-white bg-black bg-opacity-50 px-2 py-1 rounded">
-              GIF: David Goggins
-            </p>
           </div>
         </CardContent>
       </Card>
