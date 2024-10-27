@@ -234,26 +234,46 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
     ];
   };
 
-  const WeightPlate = ({ progress }: { progress: number }) => (
-    <motion.div
-      className="relative w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden"
-      style={{ boxShadow: "0 0 0 5px #e5e7eb" }}
-    >
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 bg-blue-500"
-        initial={{ height: 0 }}
-        animate={{ height: `${progress}%` }}
-        transition={{ duration: 1, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="relative z-10 text-2xl font-bold text-white mix-blend-difference"
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-      >
-        {Math.round(progress)}%
-      </motion.div>
-    </motion.div>
+  const CircularProgress = ({ progress }: { progress: number }) => (
+    <div className="relative w-64 h-64 mx-auto mt-8">
+      <svg className="w-full h-full" viewBox="0 0 100 100">
+        <circle
+          className="text-gray-200 stroke-current"
+          strokeWidth="10"
+          cx="50"
+          cy="50"
+          r="40"
+          fill="transparent"
+          transform="rotate(-90 50 50)"
+        ></circle>
+        <motion.circle
+          className="text-blue-600 stroke-current"
+          strokeWidth="10"
+          strokeLinecap="round"
+          cx="50"
+          cy="50"
+          r="40"
+          fill="transparent"
+          transform="rotate(-90 50 50)"
+          strokeDashoffset="0"
+          initial={{ strokeDasharray: "0 251.2" }}
+          animate={{
+            strokeDasharray: `${progress * 2.512} 251.2`,
+          }}
+          transition={{ duration: 1, ease: "easeInOut" }}
+        ></motion.circle>
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <motion.span
+          className="text-4xl font-bold text-blue-600"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+        >
+          {Math.round(progress)}%
+        </motion.span>
+      </div>
+    </div>
   );
 
   return (
@@ -282,7 +302,7 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
           >
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="current">Current Maxes</TabsTrigger>
-              <TabsTrigger value="clean">The Road Progress</TabsTrigger>
+              <TabsTrigger value="clean">"The Road" Progress</TabsTrigger>
             </TabsList>
             <TabsContent value="current">
               <ScrollArea className="h-[50vh] px-4">
@@ -339,23 +359,21 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
             <TabsContent value="clean">
               <ScrollArea className="h-[50vh] px-4">
                 <div className="space-y-6 pb-4">
-                  <div className="flex flex-col items-center space-y-4">
-                    <WeightPlate
-                      progress={calculateProgress(
-                        userMaxes[activeUser].clean,
-                        cleanGoal
-                      )}
-                    />
-                    <div className="text-center">
-                      <h3 className="text-xl font-bold">
-                        {activeUser}&apos;s Clean Max
-                      </h3>
-                      <div className="text-3xl font-bold text-blue-600">
-                        {userMaxes[activeUser].clean} lbs
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Goal: {cleanGoal} lbs
-                      </div>
+                  <CircularProgress
+                    progress={calculateProgress(
+                      userMaxes[activeUser].clean,
+                      cleanGoal
+                    )}
+                  />
+                  <div className="text-center mt-4">
+                    <h3 className="text-xl font-bold">
+                      {activeUser}&apos;s Clean Max
+                    </h3>
+                    <div className="text-3xl font-bold text-blue-600">
+                      {userMaxes[activeUser].clean} lbs
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Goal: {cleanGoal} lbs
                     </div>
                   </div>
                   <Card className="bg-yellow-100 border-yellow-300">
