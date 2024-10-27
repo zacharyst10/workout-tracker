@@ -8,6 +8,9 @@ import {
   Dumbbell,
   Minus,
   Plus,
+  Trophy,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -45,6 +48,8 @@ import { workoutData } from "@/lib/workouts-data";
 import confetti from "canvas-confetti";
 import Image from "next/image";
 import david from "@/public/david.png";
+import { Progress } from "./ui/progress";
+import { motion } from "framer-motion";
 
 type User = "Zach" | "Jake";
 
@@ -140,6 +145,16 @@ function FunDailyMotivation() {
   );
 }
 
+const cleanGoal = 315;
+
+const motivationalQuotes = [
+  "Every rep brings you closer to your goal!",
+  "Embrace the grind, reap the rewards!",
+  "You're stronger than you think!",
+  "Keep pushing, 315 is within reach!",
+  "One more rep, one step closer!",
+];
+
 function MaxesDrawer({ activeUser }: { activeUser: User }) {
   const [userMaxes, setUserMaxes] = useState<AllUserMaxes>(defaultUserMaxes);
   const [editMode, setEditMode] = useState(false);
@@ -147,6 +162,11 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
     defaultUserMaxes[activeUser]
   );
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("current");
+  const [cleanEditMode, setCleanEditMode] = useState(false);
+  const [tempCleanMax, setTempCleanMax] = useState(
+    defaultUserMaxes[activeUser].clean
+  );
 
   useEffect(() => {
     const storedMaxes = localStorage.getItem("userMaxes");
@@ -157,6 +177,7 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
 
   useEffect(() => {
     setTempMaxes(userMaxes[activeUser]);
+    setTempCleanMax(userMaxes[activeUser].clean);
   }, [activeUser, userMaxes]);
 
   const handleInputChange = (exercise: keyof UserMaxes, value: number) => {
@@ -176,6 +197,19 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
     setEditMode(false);
   };
 
+  const saveCleanMax = () => {
+    const newUserMaxes = {
+      ...userMaxes,
+      [activeUser]: {
+        ...userMaxes[activeUser],
+        clean: tempCleanMax,
+      },
+    };
+    setUserMaxes(newUserMaxes);
+    localStorage.setItem("userMaxes", JSON.stringify(newUserMaxes));
+    setCleanEditMode(false);
+  };
+
   const incrementValue = (exercise: keyof UserMaxes) => {
     setTempMaxes((prev) => ({
       ...prev,
@@ -189,6 +223,38 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
       [exercise]: Math.max(0, prev[exercise] - 5),
     }));
   };
+
+  const calculateProgress = (current: number, goal: number) => {
+    return (current / goal) * 100;
+  };
+
+  const getRandomQuote = () => {
+    return motivationalQuotes[
+      Math.floor(Math.random() * motivationalQuotes.length)
+    ];
+  };
+
+  const WeightPlate = ({ progress }: { progress: number }) => (
+    <motion.div
+      className="relative w-32 h-32 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden"
+      style={{ boxShadow: "0 0 0 5px #e5e7eb" }}
+    >
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 bg-blue-500"
+        initial={{ height: 0 }}
+        animate={{ height: `${progress}%` }}
+        transition={{ duration: 1, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="relative z-10 text-2xl font-bold text-white mix-blend-difference"
+        initial={{ scale: 0.5, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
+        {Math.round(progress)}%
+      </motion.div>
+    </motion.div>
+  );
 
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
@@ -209,70 +275,208 @@ function MaxesDrawer({ activeUser }: { activeUser: User }) {
               View and edit your one-rep max values.
             </DrawerDescription>
           </DrawerHeader>
-          <ScrollArea className="h-[50vh] px-4">
-            <div className="space-y-6 pb-4">
-              {Object.entries(tempMaxes).map(([exercise, weight]) => (
-                <div key={exercise} className="space-y-2">
-                  <Label htmlFor={exercise} className="text-base font-medium">
-                    {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
-                  </Label>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        decrementValue(exercise as keyof UserMaxes)
-                      }
-                      disabled={!editMode}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <Input
-                      id={exercise}
-                      type="number"
-                      inputMode="numeric"
-                      value={weight}
-                      onChange={(e) =>
-                        handleInputChange(
-                          exercise as keyof UserMaxes,
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      className="flex-1 text-center text-lg"
-                      disabled={!editMode}
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="current">Current Maxes</TabsTrigger>
+              <TabsTrigger value="clean">The Road Progress</TabsTrigger>
+            </TabsList>
+            <TabsContent value="current">
+              <ScrollArea className="h-[50vh] px-4">
+                <div className="space-y-6 pb-4">
+                  {Object.entries(tempMaxes).map(([exercise, weight]) => (
+                    <div key={exercise} className="space-y-2">
+                      <Label
+                        htmlFor={exercise}
+                        className="text-base font-medium"
+                      >
+                        {exercise.charAt(0).toUpperCase() + exercise.slice(1)}
+                      </Label>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            decrementValue(exercise as keyof UserMaxes)
+                          }
+                          disabled={!editMode}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                        <Input
+                          id={exercise}
+                          type="number"
+                          inputMode="numeric"
+                          value={weight}
+                          onChange={(e) =>
+                            handleInputChange(
+                              exercise as keyof UserMaxes,
+                              parseInt(e.target.value) || 0
+                            )
+                          }
+                          className="flex-1 text-center text-lg"
+                          disabled={!editMode}
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            incrementValue(exercise as keyof UserMaxes)
+                          }
+                          disabled={!editMode}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+            <TabsContent value="clean">
+              <ScrollArea className="h-[50vh] px-4">
+                <div className="space-y-6 pb-4">
+                  <div className="flex flex-col items-center space-y-4">
+                    <WeightPlate
+                      progress={calculateProgress(
+                        userMaxes[activeUser].clean,
+                        cleanGoal
+                      )}
                     />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() =>
-                        incrementValue(exercise as keyof UserMaxes)
-                      }
-                      disabled={!editMode}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold">
+                        {activeUser}&apos;s Clean Max
+                      </h3>
+                      <div className="text-3xl font-bold text-blue-600">
+                        {userMaxes[activeUser].clean} lbs
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Goal: {cleanGoal} lbs
+                      </div>
+                    </div>
+                  </div>
+                  <Card className="bg-yellow-100 border-yellow-300">
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <Trophy className="h-5 w-5 text-yellow-600" />
+                        <p className="text-sm font-medium text-yellow-800">
+                          {getRandomQuote()}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>
+                        Starting: {defaultUserMaxes[activeUser].clean} lbs
+                      </span>
+                      <span>Goal: {cleanGoal} lbs</span>
+                    </div>
+                    <Progress
+                      value={calculateProgress(
+                        userMaxes[activeUser].clean,
+                        cleanGoal
+                      )}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-1">
+                      <ArrowUp className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium text-green-600">
+                        +
+                        {userMaxes[activeUser].clean -
+                          defaultUserMaxes[activeUser].clean}{" "}
+                        lbs
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <ArrowDown className="h-4 w-4 text-red-500" />
+                      <span className="text-sm font-medium text-red-600">
+                        {cleanGoal - userMaxes[activeUser].clean} lbs to go
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cleanMax" className="text-base font-medium">
+                      Update Clean Max
+                    </Label>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() =>
+                          setTempCleanMax((prev) => Math.max(0, prev - 5))
+                        }
+                        disabled={!cleanEditMode}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        id="cleanMax"
+                        type="number"
+                        inputMode="numeric"
+                        value={tempCleanMax}
+                        onChange={(e) =>
+                          setTempCleanMax(parseInt(e.target.value) || 0)
+                        }
+                        className="flex-1 text-center text-lg"
+                        disabled={!cleanEditMode}
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setTempCleanMax((prev) => prev + 5)}
+                        disabled={!cleanEditMode}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </ScrollArea>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
           <DrawerFooter>
-            {editMode ? (
-              <>
-                <Button onClick={saveMaxes}>Save Changes</Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setTempMaxes(userMaxes[activeUser]);
-                    setEditMode(false);
-                  }}
-                >
-                  Cancel
+            {activeTab === "current" &&
+              (editMode ? (
+                <>
+                  <Button onClick={saveMaxes}>Save Changes</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setTempMaxes(userMaxes[activeUser]);
+                      setEditMode(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => setEditMode(true)}>Edit Maxes</Button>
+              ))}
+            {activeTab === "clean" &&
+              (cleanEditMode ? (
+                <>
+                  <Button onClick={saveCleanMax}>Save Clean Max</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setTempCleanMax(userMaxes[activeUser].clean);
+                      setCleanEditMode(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => setCleanEditMode(true)}>
+                  Edit Clean Max
                 </Button>
-              </>
-            ) : (
-              <Button onClick={() => setEditMode(true)}>Edit Maxes</Button>
-            )}
+              ))}
             <DrawerClose asChild>
               <Button variant="outline">Close</Button>
             </DrawerClose>
