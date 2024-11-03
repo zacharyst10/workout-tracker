@@ -1,9 +1,9 @@
-type Set = {
+export type Set = {
   reps: number | string;
   percentage: number;
 };
 
-type Exercise = {
+export type Exercise = {
   name: string;
   sets: Set[];
   totalReps: number;
@@ -11,14 +11,14 @@ type Exercise = {
   isRM: boolean;
 };
 
-type Day = {
+export type Day = {
   name: string;
   exercises: Exercise[];
   avgIntensity: number;
   totalVolume: number;
 };
 
-type Week = {
+export type Week = {
   number: number;
   days: Day[];
 };

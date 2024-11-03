@@ -44,7 +44,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
-import { workoutData } from "@/lib/workouts-data";
+import { Day, Exercise, Week, workoutData } from "@/lib/workouts-data";
 import confetti from "canvas-confetti";
 import Image from "next/image";
 import david from "@/public/david.png";
@@ -529,6 +529,18 @@ function WorkoutProgram({
     }
   }, [user]);
 
+  const isDayCompleted = (week: number, day: Day) => {
+    return day.exercises.every((exercise: Exercise, exerciseIndex: number) => {
+      const exerciseId = `${user}-${week}-${day.name}-${exerciseIndex}`;
+      return isExerciseCompleted(exerciseId, exercise.sets.length);
+    });
+  };
+
+  const isWeekCompleted = (week: Week) => {
+    const requiredDays = week.days.slice(0, 3);
+    return requiredDays.every((day) => isDayCompleted(week.number, day));
+  };
+
   const triggerConfetti = () => {
     confetti({
       particleCount: 100,
@@ -651,8 +663,15 @@ function WorkoutProgram({
       {workoutData.map((week) => (
         <Card
           key={week.number}
-          className="overflow-hidden border-2 bg-primary/50 border-primary"
+          className="overflow-visible border-2 rounded bg-primary/50 border-primary relative"
         >
+          {isWeekCompleted(week) && (
+            <div className="absolute -top-0 -left-8 z-50">
+              <Badge variant="weekComplete" className="transform scale-110">
+                Week Completed! 🏆
+              </Badge>
+            </div>
+          )}
           <CardHeader
             className="p-4 bg-background/40 backdrop-blur-sm text-primary cursor-pointer"
             onClick={() => toggleWeek(week.number)}
