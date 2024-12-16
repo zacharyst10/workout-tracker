@@ -24,7 +24,212 @@ export type Week = {
 };
 
 export const workoutData: Week[] = [
-  // ... Week 1 data (keep your existing Week 1 data here)
+  {
+    number: 1,
+    days: [
+      {
+        name: "MONDAY",
+        avgIntensity: 92,
+        totalVolume: 31,
+        exercises: [
+          {
+            name: "Clean Pull + Clean + Front Squat - 1+1+1 (% of RM)",
+            sets: Array(3).fill({ reps: 3, percentage: 90 }),
+            totalReps: 9,
+            intensity: 90,
+            isRM: true,
+          },
+          {
+            name: "Clean Pull from Riser (mid-shin) - 2+2",
+            sets: Array(4).fill({ reps: 4, percentage: 90 }),
+            totalReps: 16,
+            intensity: 90,
+            isRM: true,
+          },
+          {
+            name: "Pause Front Squat (% of RM)",
+            sets: [
+              { reps: 5, percentage: 90 },
+              { reps: 5, percentage: 90 },
+              { reps: "AMRAP", percentage: 90 },
+            ],
+            totalReps: 10,
+            intensity: 90,
+            isRM: true,
+          },
+          {
+            name: "Weighted Planks - 3 x 20-30sec",
+            sets: Array(3).fill({ reps: "20-30sec", percentage: 0 }),
+            totalReps: 0,
+            intensity: 0,
+            isRM: false,
+          },
+        ],
+      },
+      {
+        name: "TUESDAY",
+        avgIntensity: 68,
+        totalVolume: 35,
+        exercises: [
+          {
+            name: "Hang Power Clean (knee) (% of clean)",
+            sets: Array(10).fill({ reps: 2, percentage: 60 }),
+            totalReps: 20,
+            intensity: 60,
+            isRM: false,
+          },
+          {
+            name: "Clean High-Pull",
+            sets: Array(5).fill({ reps: 3, percentage: 70 }),
+            totalReps: 15,
+            intensity: 70,
+            isRM: false,
+          },
+          {
+            name: "A1. Pull-ups - 3 x 10",
+            sets: [
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 90 },
+            ],
+            totalReps: 9,
+            intensity: 90,
+            isRM: false,
+          },
+          {
+            name: "A2. 1-Arm DB Row - 3 x 15/arm",
+            sets: [
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 95 },
+            ],
+            totalReps: 9,
+            intensity: 95,
+            isRM: false,
+          },
+          {
+            name: "A3. Walking Lunge - 3 x 12/leg",
+            sets: [
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 85 },
+            ],
+            totalReps: 9,
+            intensity: 85,
+            isRM: false,
+          },
+        ],
+      },
+      {
+        name: "WEDNESDAY",
+        avgIntensity: 92,
+        totalVolume: 30,
+        exercises: [
+          {
+            name: "Clean + Jerk - 1+1 (% of RM)",
+            sets: Array(3).fill({ reps: 2, percentage: 90 }),
+            totalReps: 6,
+            intensity: 90,
+            isRM: true,
+          },
+          {
+            name: "Clean Pull",
+            sets: [
+              { reps: 3, percentage: 90 },
+              { reps: 3, percentage: 95 },
+              { reps: 3, percentage: 100 },
+            ],
+            totalReps: 9,
+            intensity: 95,
+            isRM: false,
+          },
+          {
+            name: "Front Squat (% of RM)",
+            sets: [
+              { reps: 3, percentage: 90 },
+              { reps: 3, percentage: 90 },
+              { reps: "AMRAP", percentage: 90 },
+            ],
+            totalReps: 9,
+            intensity: 90,
+            isRM: true,
+          },
+          {
+            name: "Hanging Leg Raise - 3 x max",
+            sets: Array(3).fill({ reps: "max", percentage: 0 }),
+            totalReps: 0,
+            intensity: 0,
+            isRM: false,
+          },
+        ],
+      },
+      {
+        name: "THURSDAY",
+        avgIntensity: 80,
+        totalVolume: 29,
+        exercises: [
+          {
+            name: "Push Press (% of RM)",
+            sets: [
+              { reps: 5, percentage: 90 },
+              { reps: 5, percentage: 90 },
+              { reps: "AMRAP", percentage: 90 },
+            ],
+            totalReps: 15,
+            intensity: 90,
+            isRM: true,
+          },
+          {
+            name: "A1. DB Press - 3x10",
+            sets: [
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 80 },
+            ],
+            totalReps: 9,
+            intensity: 80,
+            isRM: false,
+          },
+          {
+            name: "A2. BB Upright Row - 3x15",
+            sets: [
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 85 },
+            ],
+            totalReps: 9,
+            intensity: 85,
+            isRM: false,
+          },
+          {
+            name: "A3. Box Jump - 3x5",
+            sets: [
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 100 },
+              { reps: 3, percentage: 70 },
+            ],
+            totalReps: 9,
+            intensity: 70,
+            isRM: false,
+          },
+          {
+            name: "Back Squat (% of RM)",
+            sets: Array(10).fill({ reps: 2, percentage: 60 }),
+            totalReps: 20,
+            intensity: 60,
+            isRM: false,
+          },
+          {
+            name: "Weighted Planks - 3 x 20-30sec",
+            sets: Array(3).fill({ reps: "20-30sec", percentage: 0 }),
+            totalReps: 0,
+            intensity: 0,
+            isRM: false,
+          },
+        ],
+      },
+    ],
+  },
 
   {
     number: 2,
